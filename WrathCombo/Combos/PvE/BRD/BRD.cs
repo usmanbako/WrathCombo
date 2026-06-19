@@ -98,7 +98,7 @@ internal partial class BRD : PhysicalRanged
                         ? OriginalHook(RainOfDeath)
                         : OriginalHook(Bloodletter);
 
-                if (!LevelChecked(RainOfDeath) && !(WasLastAction(Bloodletter) && BloodletterCharges > 0))
+                if (!LevelChecked(RainOfDeath) && !WasLastAction(Bloodletter) && BloodletterCharges > 0)
                     return OriginalHook(Bloodletter);
 
                 if (Role.CanSecondWind(40))
@@ -450,7 +450,7 @@ internal partial class BRD : PhysicalRanged
             #region Self Care
             if (CanBardWeave)
             {
-                if (IsEnabled(Preset.BRD_AoE_SecondWind) && Role.CanSecondWind(BRD_STSecondWindThreshold))
+                if (IsEnabled(Preset.BRD_AoE_SecondWind) && Role.CanSecondWind(BRD_AoESecondWindThreshold))
                     return Role.SecondWind;
 
                 if (IsEnabled(Preset.BRD_AoE_Wardens) && ActionReady(TheWardensPaeon))

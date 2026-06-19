@@ -55,6 +55,8 @@ internal partial class BRD
     internal static bool CanWeaveDelayed => CanDelayedWeave();
     internal static bool CanIronJaws => LevelChecked(IronJaws);
     internal static bool BuffTime => GetCooldownRemainingTime(RagingStrikes) < 2.7;
+    // 3-6-9 cycle is active when the user selects the dedicated opener.
+    internal static bool Use369Cycle => IsEnabled(Preset.BRD_ST_AdvMode) && BRD_Adv_Opener_Selection == 3;
     internal static bool BuffWindow => HasStatusEffect(Buffs.RagingStrikes) && 
                                        (HasStatusEffect(Buffs.BattleVoice) || !LevelChecked(BattleVoice)) &&
                                        (HasStatusEffect(Buffs.RadiantFinale) || !LevelChecked(RadiantFinale));
@@ -81,6 +83,11 @@ internal partial class BRD
             if (gauge.SoulVoice >= 80)
             {
                 if (BuffWindow && RagingStrikesDuration < 18 || RagingCD >= 50 && RagingCD <= 62)
+                    return true;
+
+                // Fallback per guide: spend Apex/Blast when Mage's Ballad timer < 21 so
+                // it doesn't get wasted rolling into the next song.
+                if (SongMage && SongTimerInSeconds is > 0 and <= 21)
                     return true;
             }
             return false;
@@ -109,13 +116,19 @@ internal partial class BRD
         //Bloodletter & Rain of Death Logic
         internal static bool UsePooledBloodRain()
         {
-            if ((!WasLastAbility(Bloodletter) || !WasLastAbility(RainOfDeath) || !WasLastAbility(HeartbreakShot)) && 
+            // Per guide: stop pressing Heartbreak Shot once Army's Paeon drops below
+            // ~35s so we can dump 3-4 charges under the next buff window. We still
+            // allow it during an active burst window.
+            if (LevelChecked(HeartbreakShot) && SongArmy && SongTimerInSeconds is > 0 and <= 35 && !BuffWindow)
+                return false;
+
+            if (!WasLastAbility(Bloodletter) && !WasLastAbility(RainOfDeath) && !WasLastAbility(HeartbreakShot) &&
                (EmpyrealCD > 2 || !LevelChecked(EmpyrealArrow)))
             {
-                if (BloodletterCharges == 3 && TraitLevelChecked(Traits.EnhancedBloodletter) || 
+                if (BloodletterCharges == 3 && TraitLevelChecked(Traits.EnhancedBloodletter) ||
                     BloodletterCharges == 2 && !TraitLevelChecked(Traits.EnhancedBloodletter) ||
                     BloodletterCharges > 0 && (BuffWindow || RagingCD > 30))
-                    return true; 
+                    return true;
             }
             return false;
         }
@@ -228,14 +241,17 @@ internal partial class BRD
                 if (SongNone && !ActionReady(MagesBallad) && !ActionReady(WanderersMinuet)) //No song, Use army as last resort
                     return true;
 
-                if (SongMage && SongTimerInSeconds <= 3) //Transition to army after mages
+                // 3-6-9 cycle enters Army's at MB <= 6s; Standard 3-3-12 enters at <= 3s.
+                int mbExitThreshold = Use369Cycle ? 6 : 3;
+                if (SongMage && SongTimerInSeconds <= mbExitThreshold) //Transition to army after mages
                     return true;
             }
             return false;
         }
         internal static bool SongChangeEmpyreal()
         {
-            return SongMage && SongTimerInSeconds <= 3 && ActionReady(ArmysPaeon) && ActionReady(EmpyrealArrow) && BardHasTarget && CanBardWeave; // Uses Empyreal before transiitoning to Army if possible
+            int mbExitThreshold = Use369Cycle ? 6 : 3;
+            return SongMage && SongTimerInSeconds <= mbExitThreshold && ActionReady(ArmysPaeon) && ActionReady(EmpyrealArrow) && BardHasTarget && CanBardWeave; // Uses Empyreal before transiitoning to Army if possible
         }
         internal static bool SongChangePitchPerfect()
         {
@@ -338,7 +354,7 @@ internal partial class BRD
             if (BRD_Adv_Opener_Selection == 0 && Opener1.LevelChecked) return Opener1;
             if (BRD_Adv_Opener_Selection == 1 && Opener2.LevelChecked) return Opener2;
             if (BRD_Adv_Opener_Selection == 2 && Opener3.LevelChecked) return Opener3;
-            if (BRD_Adv_Opener_Selection == 3 && Opener3.LevelChecked) return Opener4;
+            if (BRD_Adv_Opener_Selection == 3 && Opener4.LevelChecked) return Opener4;
         }
         return Opener1.LevelChecked ? Opener1 : WrathOpener.Dummy;
     }

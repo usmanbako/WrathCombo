@@ -53,7 +53,7 @@ internal partial class BRD
                     DrawRadioButton(BRD_Adv_Opener_Selection, Generics.StandardOpener, "", 0);
                     DrawRadioButton(BRD_Adv_Opener_Selection, "2.48 Adjusted Standard Opener", "", 1);
                     DrawRadioButton(BRD_Adv_Opener_Selection, "2.49 Standard Comfy", "", 2);
-                    DrawRadioButton(BRD_Adv_Opener_Selection, "Early Buff Window Opener", "Moves buff window forward about 1 GCD. Prepot with this.", 3, descriptionAsTooltip: true);
+                    DrawRadioButton(BRD_Adv_Opener_Selection, "3-6-9 Cycle (Early Buff Window)", "Optimized 3-6-9 song cycle. Moves buff window forward ~1 GCD, fits 2x Empyreal under buffs, and enters Army's Paeon at the 6s tick. Prepot with this. Requires a 2.49 or 2.50 GCD to play cleanly.", 3, descriptionAsTooltip: true);
                     ImGui.Indent();
                     DrawBossOnlyChoice(BRD_Balance_Content);
                     ImGui.Unindent();
